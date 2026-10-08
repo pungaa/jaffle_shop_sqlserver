@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+project_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+dbt_local="$project_dir/scripts/dbt-local"
+
+run() {
+  echo
+  echo "+ dbt $*"
+  "$dbt_local" "$@"
+}
+
+run deps
+run debug
+run parse
+run list --resource-type model seed test unit_test source
+run compile
+run seed --full-refresh
+run run --full-refresh
+run test --no-partial-parse
+run snapshot
+run build --full-refresh
+run docs generate
+run source freshness
+run show --select orders --limit 5

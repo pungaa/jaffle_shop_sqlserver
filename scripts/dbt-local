@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+project_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+dbt_bin="${DBT_BIN:-dbt}"
+profile_dir="${DBT_PROFILES_DIR:-$project_dir}"
+
+if [[ -z "${DBT_SQLSERVER_PASSWORD:-}" ]]; then
+  container="${DBT_SQLSERVER_CONTAINER:-integration-sqlserver-destination-1}"
+  DBT_SQLSERVER_PASSWORD="$({
+    docker inspect "$container" \
+      --format '{{range .Config.Env}}{{println .}}{{end}}'
+  } | awk -F= '$1 == "MSSQL_SA_PASSWORD" {print substr($0, index($0, "=") + 1); exit}')"
+  export DBT_SQLSERVER_PASSWORD
+fi
+
+if [[ -z "$DBT_SQLSERVER_PASSWORD" ]]; then
+  echo "DBT_SQLSERVER_PASSWORD is unset and could not be read from the SQL Server container." >&2
+  exit 1
+fi
+
+exec "$dbt_bin" "$@" --profiles-dir "$profile_dir"

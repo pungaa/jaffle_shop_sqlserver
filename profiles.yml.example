@@ -1,0 +1,16 @@
+default:
+  target: dev
+  outputs:
+    dev:
+      type: sqlserver
+      backend: mssql-python
+      host: localhost
+      port: 51433
+      database: supaflow_dest
+      schema: jaffle_shop_sqlserver
+      user: sa
+      password: "{{ env_var('DBT_SQLSERVER_PASSWORD') }}"
+      authentication: sql
+      encrypt: true
+      trust_cert: true
+      threads: 1
